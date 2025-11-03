@@ -1,0 +1,221 @@
+{
+  "entities": {
+    "ClipboardItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ClipboardItem",
+      "type": "object",
+      "description": "Represents a single item stored in the clipboard history.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ClipboardItem entity."
+        },
+        "contentType": {
+          "type": "string",
+          "description": "The type of content stored in the clipboard item (e.g., 'text', 'image', 'code')."
+        },
+        "content": {
+          "type": "string",
+          "description": "The actual content of the clipboard item (text, image data, etc.)."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The date and time when the clipboard item was copied.",
+          "format": "date-time"
+        },
+        "isFavorite": {
+          "type": "boolean",
+          "description": "Indicates whether the clipboard item has been marked as a favorite."
+        },
+        "isPinned": {
+          "type": "boolean",
+          "description": "Indicates whether the clipboard item has been pinned."
+        }
+      },
+      "required": [
+        "id",
+        "contentType",
+        "content",
+        "timestamp"
+      ]
+    },
+    "Snippet": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Snippet",
+      "type": "object",
+      "description": "Represents a saved snippet of text or code.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Snippet entity."
+        },
+        "categoryId": {
+          "type": "string",
+          "description": "Reference to Category. (Relationship: Category 1:N Snippet)"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the snippet."
+        },
+        "content": {
+          "type": "string",
+          "description": "The actual content of the snippet (text, code, etc.)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the snippet."
+        },
+        "usageCount": {
+          "type": "number",
+          "description": "How often the snippet has been used. "
+        }
+      },
+      "required": [
+        "id",
+        "categoryId",
+        "name",
+        "content"
+      ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a category for organizing snippets.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Category entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the category."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the category."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "Setting": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Setting",
+      "type": "object",
+      "description": "Represents a user-configurable setting for the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Setting entity."
+        },
+        "key": {
+          "type": "string",
+          "description": "The key of the setting (e.g., 'theme', 'font_size')."
+        },
+        "value": {
+          "type": "string",
+          "description": "The value of the setting (e.g., 'dark', '12')."
+        }
+      },
+      "required": [
+        "id",
+        "key",
+        "value"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}/clipboardItems/{clipboardItemId}",
+        "definition": {
+          "entityName": "ClipboardItem",
+          "schema": {
+            "$ref": "#/backend/entities/ClipboardItem"
+          },
+          "description": "Stores clipboard items for each user. Path-based ownership ensures that only the user can access their own clipboard items.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The ID of the user who owns the clipboard item."
+            },
+            {
+              "name": "clipboardItemId",
+              "description": "The ID of the clipboard item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/snippets/{snippetId}",
+        "definition": {
+          "entityName": "Snippet",
+          "schema": {
+            "$ref": "#/backend/entities/Snippet"
+          },
+          "description": "Stores snippets for each user. Path-based ownership ensures that only the user can access their own snippets.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The ID of the user who owns the snippet."
+            },
+            {
+              "name": "snippetId",
+              "description": "The ID of the snippet."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Stores categories for each user. Path-based ownership ensures that only the user can access their own categories.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The ID of the user who owns the category."
+            },
+            {
+              "name": "categoryId",
+              "description": "The ID of the category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/settings/{settingId}",
+        "definition": {
+          "entityName": "Setting",
+          "schema": {
+            "$ref": "#/backend/entities/Setting"
+          },
+          "description": "Stores settings for each user. Path-based ownership ensures that only the user can access their own settings.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The ID of the user who owns the setting."
+            },
+            {
+              "name": "settingId",
+              "description": "The ID of the setting."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure Authorization Independence, DBAC, and support secure list operations (QAPs). User-owned data is structured under `/users/{userId}` for clear ownership. Clipboard items, snippets, categories, and settings are all stored under the user's document, providing a private data structure. This design eliminates the need for `get()` calls in security rules by enforcing path-based ownership, where access control is determined solely by the user's ID. This avoids hierarchical authorization dependencies and ensures atomic operations.\n\nThe structure facilitates simple, robust, and easily debuggable security rules by adhering to the principle of Authorization Independence. All authorization decisions are based on the path and the user's authentication state (`request.auth.uid`), without relying on data reads from other documents. This enhances security and simplifies rule management.\n\nQAPs are supported through structural segregation and path-based ownership. Secure `list` operations are enabled because each user's data is isolated under their respective `/users/{userId}` path, ensuring that a user can only access their own clipboard items, snippets, categories and settings."
+  }
+}
